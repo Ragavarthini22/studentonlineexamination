@@ -14,6 +14,7 @@ def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
+            
             form.save()
             messages.success(request, "Registration successful")
             return redirect('login')
