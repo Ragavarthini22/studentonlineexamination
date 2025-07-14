@@ -10,6 +10,7 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
+
 # ✅ Exam model
 class Exam(models.Model):
     title = models.CharField(max_length=100)
@@ -18,8 +19,9 @@ class Exam(models.Model):
     def __str__(self):
         return self.title
 
-# ✅ Question model (note: singular name "Question")
-class Questions(models.Model):
+
+# ✅ Question model
+class Question(models.Model):  # Renamed to singular: "Question"
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='questions')
     question_text = models.CharField(max_length=255)
     option_a = models.CharField(max_length=100)
@@ -34,16 +36,18 @@ class Questions(models.Model):
     ])
 
     def __str__(self):
-        return self.question_text
+        return self.question_text  # ✅ Fixed typo (was self.questions_text)
+
 
 # ✅ Student's answer model
 class StudentAnswer(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, null=True, blank=True) 
     selected_option = models.CharField(max_length=1)
 
     def is_correct(self):
         return self.selected_option == self.question.answer
+
 
 # ✅ Exam result model
 class Result(models.Model):

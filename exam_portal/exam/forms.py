@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser, StudentAnswer
 
 # ✅ Registration form for Student
-class StudentRegisterForm(UserCreationForm):
+class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'password1', 'password2']
@@ -13,3 +13,7 @@ class AnswerForm(forms.ModelForm):
     class Meta:
         model = StudentAnswer
         fields = ['selected_option']
+
+
+class OTPForm(forms.Form):
+    otp = forms.CharField(max_length=6)
