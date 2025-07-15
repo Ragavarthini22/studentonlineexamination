@@ -1,33 +1,47 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from .forms import CustomUserCreationForm, OTPForm
 from .models import CustomUser
-import random
 from django.contrib.auth.decorators import login_required
+import random
 
-# Registration View
+
+# 🔀 Entry point: switches between login/register/otp using ?show=
+def auth_page(request):
+    show = request.GET.get('show', 'login')
+    return render(request, 'exam/auth.html', {'show': show})
+
+
+# 📝 Register a user and send OTP
 def register_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        # ... validate inputs ...
 
+        # Check if user exists
         if CustomUser.objects.filter(username=username).exists():
-            error = "Username already exists!"
-            return render(request, 'exam/register.html', {'error': error})
+            return render(request, 'exam/auth.html', {
+                'show': 'register',
+                'error': 'Username already exists!'
+            })
 
-        otp_code = str(random.randint(100000, 999999))  # generate OTP
+        # Create user and generate OTP
+        otp_code = str(random.randint(100000, 999999))
         user = CustomUser.objects.create_user(username=username, password=password)
         user.is_verified = False
         user.otp = otp_code
         user.save()
 
-        # TODO: send OTP via email or SMS here. For now, show it on screen
-        return render(request, 'exam/auth.html', {'username': username, 'otp': otp_code})
+        # Render OTP form with OTP shown (dev purpose)
+        return render(request, 'exam/auth.html', {
+            'show': 'otp',
+            'username': username,
+            'otp': otp_code  # In production, you'd email or SMS this
+        })
 
-    return render(request, 'exam/auth.html')
+    return redirect('/auth/?show=register')
 
-# OTP Verification View
+
+# 🔐 Verify OTP
 def otp_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -36,60 +50,66 @@ def otp_view(request):
         try:
             user = CustomUser.objects.get(username=username)
         except CustomUser.DoesNotExist:
-            error = "User not found!"
-            return render(request, 'exam/otp.html', {'error': error})
+            return render(request, 'exam/auth.html', {
+                'show': 'otp',
+                'error': 'User not found!',
+                'username': username
+            })
 
         if user.otp == entered_otp:
             user.is_verified = True
             user.otp = None
             user.save()
-            return redirect('login')
+            return redirect('/auth/?show=login')
         else:
-            error = "Invalid OTP! Please try again."
-            return render(request, 'exam/auth.html', {'error': error, 'username': username})
+            return render(request, 'exam/auth.html', {
+                'show': 'otp',
+                'username': username,
+                'error': 'Invalid OTP!'
+            })
 
-    # For GET requests, show a form to enter OTP
-    return render(request, 'auth/otp.html')
+    return redirect('/auth/?show=otp')
 
 
-# Login View
+# 🔓 Login after verification
 def login_view(request):
-    error = None
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
+
         user = authenticate(request, username=username, password=password)
-        if user is not None:
+
+        if user:
             if user.is_verified:
                 login(request, user)
-                return redirect('exam/dashboard')
+                return redirect('dashboard')
             else:
-                error = "Account not verified! Please verify via OTP."
+                return render(request, 'exam/auth.html', {
+                    'show': 'login',
+                    'error': 'Please verify your account using OTP.'
+                })
         else:
-            error = "Invalid username or password."
+            return render(request, 'exam/auth.html', {
+                'show': 'login',
+                'error': 'Invalid username or password.'
+            })
 
-    return render(request, 'auth/login.html', {'error': error})
+    return redirect('/auth/?show=login')
 
 
-# Logout View
-def logout_view(request):
-    logout(request)
-    return redirect('login')
-
-# Dashboard View
-from django.contrib.auth.decorators import login_required
-
-@login_required
-def dashboard_view(request):
-    return render(request, 'dashboard.html')
-
-@login_required(login_url='login')
+# 🧾 Dashboard
+@login_required(login_url='/auth/?show=login')
 def dashboard_view(request):
     user = request.user
-    context = {
+    return render(request, 'exam/dashboard.html', {
         'username': user.username,
         'is_student': user.is_student,
         'is_superuser': user.is_superuser,
         'is_verified': user.is_verified,
-    }
-    return render(request, 'auth.html', context)
+    })
+
+
+# 🚪 Logout
+def logout_view(request):
+    logout(request)
+    return redirect('/auth/?show=login')
