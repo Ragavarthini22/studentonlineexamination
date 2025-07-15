@@ -17,13 +17,10 @@ Including another URLconf
 from django.urls import path
 from . import views
 
-
 urlpatterns = [
-  
-    path('auth/register/', views.register_view, name='register'),
-    path('auth/login/', views.login_view, name='login'),
-    path('auth/otp/', views.otp_view, name='otp'),
-    path('dashboard/', views.dashboard_view, name='dashboard'),
-    path('logout/', views.logout_view, name='logout'),
-    path('auth/', views.auth_page, name='auth'),
+    #path('', views.auth_page, name='auth_page'),        # ✅ This is the important one
+    path('register/', views.register_view, name='register'),  
+    path('verify/', views.verify_otp, name='verify_otp'),
+    path('login/', views.login_view, name='login'),
+   #path('logout/', views.logout_view, name='logout'),
 ]
