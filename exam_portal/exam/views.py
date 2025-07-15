@@ -23,9 +23,9 @@ def register_view(request):
         user.save()
 
         # TODO: send OTP via email or SMS here. For now, show it on screen
-        return render(request, 'exaam/otp.html', {'username': username, 'otp': otp_code})
+        return render(request, 'exam/auth.html', {'username': username, 'otp': otp_code})
 
-    return render(request, 'exam/register.html')
+    return render(request, 'exam/auth.html')
 
 # OTP Verification View
 def otp_view(request):
@@ -46,10 +46,10 @@ def otp_view(request):
             return redirect('login')
         else:
             error = "Invalid OTP! Please try again."
-            return render(request, 'exam/otp.html', {'error': error, 'username': username})
+            return render(request, 'exam/auth.html', {'error': error, 'username': username})
 
     # For GET requests, show a form to enter OTP
-    return render(request, 'exam/otp.html')
+    return render(request, 'auth/otp.html')
 
 
 # Login View
@@ -68,7 +68,7 @@ def login_view(request):
         else:
             error = "Invalid username or password."
 
-    return render(request, 'exam/login.html', {'error': error})
+    return render(request, 'auth/login.html', {'error': error})
 
 
 # Logout View
@@ -92,4 +92,4 @@ def dashboard_view(request):
         'is_superuser': user.is_superuser,
         'is_verified': user.is_verified,
     }
-    return render(request, 'dashboard.html', context)
+    return render(request, 'auth.html', context)

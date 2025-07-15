@@ -1,0 +1,35 @@
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="username" required placeholder="Username">
+    <input type="password" name="password" required placeholder="Password">
+    <button type="submit">Register</button>
+</form>
+{% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+<a href="{% url 'login' %}">Already have an account? Login</a>
+
+<form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="username" value="{{ username }}">
+    <input type="text" name="otp" required placeholder="Enter OTP">
+    <button type="submit">Verify</button>
+</form>
+{% if otp %}<p>OTP for {{ username }}: <b>{{ otp }}</b> (Dev only)</p>{% endif %}
+{% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="username" required placeholder="Username">
+    <input type="password" name="password" required placeholder="Password">
+    <button type="submit">Login</button>
+</form>
+{% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+<a href="{% url 'register' %}">Don't have an account? Register</a>
+
+<h2>Welcome {{ username }}</h2>
+<p>Status: {% if is_verified %}Verified{% else %}Unverified{% endif %}</p>
+<p>User Type: 
+    {% if is_superuser %}Admin
+    {% elif is_student %}Student
+    {% else %}Other{% endif %}
+</p>
+<a href="{% url 'logout' %}">Logout</a>
