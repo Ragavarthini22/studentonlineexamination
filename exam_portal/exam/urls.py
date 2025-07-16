@@ -18,9 +18,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    #path('', views.auth_page, name='auth_page'),        # ✅ This is the important one
-    path('register/', views.register_view, name='register'),  
-    path('verify/', views.verify_otp, name='verify_otp'),
+
     path('login/', views.login_view, name='login'),
-   #path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_view, name='register'),
+    path('otp/', views.otp_view, name='otp'),
+    path('resend-otp/', views.resend_otp, name='resend_otp'),
+    path('success/', views.auth_success, name='auth_success'),
 ]
+

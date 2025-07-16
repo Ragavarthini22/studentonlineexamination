@@ -1,154 +1,58 @@
+<!-- templates/auth/otp.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>OTP Verification</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Nunito', sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .otp-card {
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 40px 30px;
-      width: 100%;
-      max-width: 380px;
-      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      color: #fff;
-    }
-
-    .otp-card h2 {
-      margin-bottom: 25px;
-      font-weight: 700;
-    }
-
-    .otp-inputs {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 25px;
-    }
-
-    .otp-inputs input {
-      width: 50px;
-      height: 50px;
+    body { background: #dff9fb; font-family: sans-serif; }
+    .container {
+      width: 340px;
+      margin: auto;
+      padding: 30px;
+      background: white;
       border-radius: 10px;
+      box-shadow: 0 0 15px #ccc;
+      margin-top: 60px;
+      text-align: center;
+    }
+    .otp-boxes {
+      display: flex;
+      justify-content: space-between;
+      margin: 20px 0;
+    }
+    .otp-boxes input {
+      width: 40px;
+      height: 40px;
       font-size: 20px;
       text-align: center;
-      border: none;
-      outline: none;
-      background-color: rgba(255, 255, 255, 0.8);
-      color: #333;
-      transition: box-shadow 0.3s ease;
-    }
-
-    .otp-inputs input:focus {
-      box-shadow: 0 0 5px #fff;
-    }
-
-    .verify-btn {
-      padding: 12px;
-      width: 100%;
-      background-color: #fff;
-      color: #764ba2;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    .verify-btn:hover {
-      background-color: #f0f0f0;
-    }
-
-    .message {
-      margin-top: 20px;
-      font-size: 15px;
-      display: none;
-      animation: fadeIn 0.4s ease;
-    }
-
-    .message.success {
-      color: #00ff9d;
-    }
-
-    .message.error {
-      color: #ff6b6b;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 420px) {
-      .otp-inputs {
-        gap: 10px;
-      }
-      .otp-inputs input {
-        width: 45px;
-        height: 45px;
-      }
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
-
-<div class="otp-card">
-  <h2>OTP Verification</h2>
-  <div class="otp-inputs">
-    <input type="text" maxlength="1" id="otp1" oninput="moveNext(this, 'otp2')" />
-    <input type="text" maxlength="1" id="otp2" oninput="moveNext(this, 'otp3')" />
-    <input type="text" maxlength="1" id="otp3" oninput="moveNext(this, 'otp4')" />
-    <input type="text" maxlength="1" id="otp4" />
+  <div class="container">
+    <h2>Verify OTP</h2>
+    <form method="post">{% csrf_token %}
+      <div class="otp-boxes">
+        {% for i in "123456" %}
+        <input type="text" name="digit{{ forloop.counter }}" maxlength="1" required />
+        {% endfor %}
+      </div>
+      <p id="timer">Resend available in 30s</p>
+      <button type="submit">Verify</button>
+    </form>
+    <p><a href="{% url 'resend_otp' %}">Resend OTP</a></p>
   </div>
-  <button class="verify-btn" onclick="verifyOTP()">Verify OTP</button>
-  <div class="message" id="otp-message"></div>
-</div>
 
-<script>
-  function moveNext(current, nextId) {
-    if (current.value.length === 1) {
-      document.getElementById(nextId).focus();
-    }
-  }
-
-  function verifyOTP() {
-    const otp = 
-      document.getElementById("otp1").value +
-      document.getElementById("otp2").value +
-      document.getElementById("otp3").value +
-      document.getElementById("otp4").value;
-
-    const message = document.getElementById("otp-message");
-    message.style.display = "block";
-
-    if (otp === "1234") {
-      message.textContent = "✅ OTP Verified Successfully!";
-      message.className = "message success";
-    } else {
-      message.textContent = "❌ Invalid OTP. Try again.";
-      message.className = "message error";
-    }
-  }
-</script>
-
+  <script>
+    let t = 30;
+    const timer = document.getElementById('timer');
+    const countdown = setInterval(() => {
+      t--;
+      timer.textContent = t > 0 ? `Resend available in ${t}s` : "You can now resend.";
+      if (t <= 0) clearInterval(countdown);
+    }, 1000);
+  </script>
 </body>
 </html>

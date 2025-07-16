@@ -1,69 +1,89 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth import get_user_model
-from django.contrib import messages
-from .forms import RegisterForm
+from django.contrib.auth import authenticate, login, logout as auth_logout
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.conf import settings
 import random
+import ssl
+import certifi 
 
-User = get_user_model()  # ✅ Fix: get custom user model
+# Monkey patch: Force SSL context to use certifi
+ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 
-# Store OTPs temporarily (in memory)
-otp_store = {}
-
+def generate_otp():
+    return str(random.randint(100000, 999999))
 
 def login_view(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        username = request.POST["username"]
+        password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
         if user:
-            otp = str(random.randint(100000, 999999))
-            otp_store[username] = otp
-            request.session["otp_user"] = username
-            print(f"OTP for {username}: {otp}")
-            messages.info(request, "OTP sent. Check terminal.")
-            return redirect('auth_page')
-        else:
-            messages.error(request, "Invalid username or password.")
-            return redirect('auth_page')
-    return redirect('auth_page')
-
+            login(request, user)
+            return redirect("auth_success")
+    return render(request, "exam/login.html")
 
 def register_view(request):
     if request.method == "POST":
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Registration successful! You can now log in.")
-            return redirect('auth_page')
-    else:
-        form = RegisterForm()
-    return render(request, 'exam/auth.html', {"form": form, "show": "register-form"})
+        username = request.POST["username"]
+        email = request.POST["email"]
+        password = request.POST["password"]
+        confirm = request.POST["confirm"]
 
+        if password != confirm:
+            return render(request, "exam/register.html", {"error": "Passwords do not match"})
 
-def verify_otp(request):
-    username = request.session.get("otp_user")
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.is_active = False
+        user.save()
+
+        otp = generate_otp()
+        request.session["otp"] = otp
+        request.session["user_to_verify"] = username
+
+        send_mail(
+            "Your OTP",
+            f"Here is your OTP: {otp}",
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+        )
+        return redirect("otp")
+
+    return render(request, "exam/register.html")
+
+def otp_view(request):
     if request.method == "POST":
-        entered_otp = request.POST.get("otp")
-        actual_otp = otp_store.get(username)
-        if entered_otp == actual_otp:
-            user = User.objects.get(username=username)  # ✅ Now works
+        entered = "".join([request.POST.get(f"digit{i}") for i in range(1, 7)])
+        session_otp = request.session.get("otp")
+        username = request.session.get("user_to_verify")
+
+        if entered == session_otp and username:
+            user = User.objects.get(username=username)
+            user.is_active = True
+            user.save()
             login(request, user)
-            del request.session["otp_user"]
-            messages.success(request, "OTP verified. You are now logged in.")
-            return redirect('auth_page')
-        else:
-            messages.error(request, "Invalid OTP. Please try again.")
-            return redirect('auth_page')
-    return render(request, 'exam/auth.html', {"show": "otp-form"})
+            return redirect("auth_success")
 
+    return render(request, "exam/otp.html")
 
-def auth_page(request):
-    form = RegisterForm()
-    return render(request, "exam/auth.html", {"form": form, "show": "login-form"})
+def resend_otp(request):
+    username = request.session.get("user_to_verify")
+    if username:
+        user = User.objects.get(username=username)
+        otp = generate_otp()
+        request.session["otp"] = otp
+        send_mail(
+            "Your New OTP",
+            f"Your new OTP is: {otp}",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+        )
+    return redirect("otp")
 
+def auth_success(request):
+    return render(request, "exam/auth_success.html")
 
 def logout_view(request):
-    logout(request)
-    messages.info(request, "You have been logged out.")
-    return redirect('auth_page')
+    if request.method == "POST":
+        auth_logout(request)
+        return redirect("login")

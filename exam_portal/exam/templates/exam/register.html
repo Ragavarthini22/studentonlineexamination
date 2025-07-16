@@ -1,167 +1,34 @@
+<!-- templates/auth/register.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registration Page</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet" />
+  <title>Register</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Montserrat', sans-serif;
-      background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    .register-container {
-      background: white;
-      padding: 40px 30px;
-      border-radius: 15px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .register-container h2 {
-      text-align: center;
-      margin-bottom: 25px;
-      color: #333;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #555;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-      transition: 0.3s ease;
-    }
-
-    .form-group input:focus {
-      border-color: #7f5af0;
-      box-shadow: 0 0 5px #7f5af0aa;
-      outline: none;
-    }
-
-    .form-message {
-      display: none;
-      font-size: 14px;
-      margin-top: 5px;
-    }
-
-    .form-message.error {
-      color: red;
-    }
-
-    .form-message.success {
-      color: green;
-    }
-
-    .register-btn {
-      width: 100%;
-      padding: 12px;
-      background-color: #7f5af0;
-      border: none;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .register-btn:hover {
-      background-color: #5c3dd5;
-    }
-
-    @media (max-width: 500px) {
-      .register-container {
-        padding: 30px 20px;
-      }
-    }
+    body { background: #ffe6f0; font-family: sans-serif; }
+    .container { width: 380px; margin: auto; padding: 40px; background: white; border-radius: 10px; box-shadow: 0 0 15px #ccc; margin-top: 60px; }
+    input, button { width: 100%; margin: 10px 0; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+    .strength { font-size: 12px; color: gray; text-align: left; }
   </style>
 </head>
 <body>
-
-<div class="register-container">
-  <h2>Create Account</h2>
-
-  <div class="form-group">
-    <label for="name">Full Name</label>
-    <input type="text" id="name" placeholder="John Doe" />
+  <div class="container">
+    <h2>Register</h2>
+    <form method="post">{% csrf_token %}
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Password" id="regPassword" required oninput="checkStrength(this.value)" />
+      <div class="strength" id="strengthHint"></div>
+      <input type="password" name="confirm" placeholder="Confirm Password" required />
+      <label><input type="checkbox" required /> I agree to terms & conditions</label>
+      <button type="submit">Register</button>
+      <p><a href="{% url 'login' %}">Already have an account?</a></p>
+    </form>
   </div>
-
-  <div class="form-group">
-    <label for="email">Email Address</label>
-    <input type="email" id="email" placeholder="example@mail.com" />
-  </div>
-
-  <div class="form-group">
-    <label for="password">Password</label>
-    <input type="password" id="password" placeholder="Enter Password" />
-  </div>
-
-  <div class="form-group">
-    <label for="confirmPassword">Confirm Password</label>
-    <input type="password" id="confirmPassword" placeholder="Confirm Password" />
-    <div class="form-message" id="form-message"></div>
-  </div>
-
-  <button class="register-btn" onclick="register()">Register</button>
-</div>
-
-<script>
-  function register() {
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
-    const messageDiv = document.getElementById("form-message");
-
-    messageDiv.style.display = "none";
-    messageDiv.classList.remove("error", "success");
-
-    if (!name || !email || !password || !confirmPassword) {
-      messageDiv.textContent = "Please fill out all fields.";
-      messageDiv.classList.add("error");
-      messageDiv.style.display = "block";
-      return;
+  <script>
+    function checkStrength(p) {
+      const hint = document.getElementById('strengthHint');
+      hint.textContent = p.length < 6 ? "Weak password" : /[a-zA-Z]/.test(p) && /\d/.test(p) ? "Strong password" : "Medium strength";
     }
-
-    if (password !== confirmPassword) {
-      messageDiv.textContent = "Passwords do not match.";
-      messageDiv.classList.add("error");
-      messageDiv.style.display = "block";
-      return;
-    }
-
-    // Dummy success message
-    messageDiv.textContent = "✅ Registration successful!";
-    messageDiv.classList.add("success");
-    messageDiv.style.display = "block";
-   
-  }
-</script>
-
+  </script>
 </body>
 </html>
