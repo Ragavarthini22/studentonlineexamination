@@ -129,3 +129,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'ragavisk97@gmail.com'
 EMAIL_HOST_PASSWORD = 'fzoz umji verb trbw'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+LOGIN_REDIRECT_URL = '/dashboard/'

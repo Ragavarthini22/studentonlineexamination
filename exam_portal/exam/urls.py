@@ -24,5 +24,7 @@ urlpatterns = [
     path('otp/', views.otp_view, name='otp'),
     path('resend-otp/', views.resend_otp, name='resend_otp'),
     path('success/', views.auth_success, name='auth_success'),
+    path('logout/', views.logout_view, name='logout'),
+    path('dashboard/', views.dashboard_view, name='dashboard'),
 ]
 

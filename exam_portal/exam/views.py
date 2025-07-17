@@ -3,12 +3,14 @@ from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 import random
 import ssl
 import certifi 
 
 # Monkey patch: Force SSL context to use certifi
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
+
 
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -87,3 +89,7 @@ def logout_view(request):
     if request.method == "POST":
         auth_logout(request)
         return redirect("login")
+    
+@login_required
+def dashboard_view(request):
+    return render(request, "exam/dashboard.html", {"user": request.user})
