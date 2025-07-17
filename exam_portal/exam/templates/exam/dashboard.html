@@ -1,197 +1,279 @@
-<!-- templates/dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Student Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CoreUI‑Style Dashboard</title>
+
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"/>
+
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #f4f6f8;
-      color: #333;
+    body { display: flex; min-height: 100vh; flex-direction: column; }
+    #content-wrapper { display: flex; flex: 1; }
+    #sidebar {
+      background: #2f353a;
+      width: 240px;
+      transition: width .3s;
+      color: #fff;
     }
-
-    header {
-      background: #34495e;
-      color: white;
-      padding: 20px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    #sidebar.collapsed { width: 70px; }
+    #sidebar .nav-link { color: #c2c7d0; }
+    #main {
+      flex: 1;
+      background: #f4f6f9;
+      padding: 20px;
     }
-
-    header a {
-      color: #f39c12;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 0 20px;
-    }
-
-    .section {
-      margin-bottom: 40px;
-    }
-
-    .section h2 {
+    .chart-card {
+      background: #fff;
+      border-radius: 6px;
+      padding: 18px;
       margin-bottom: 20px;
-      color: #2c3e50;
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-
-    .card h3 {
-      margin: 10px 0;
-      color: #16a085;
-    }
-
-    .chart-container {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-    table {
-      width: 100%;
-      background: white;
-      border-radius: 10px;
-      padding: 10px;
-      border-collapse: collapse;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-    }
-
-    th {
-      background: #ecf0f1;
-    }
-
-    footer {
-      margin-top: 50px;
-      padding: 20px;
-      text-align: center;
-      color: #888;
-      font-size: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>Hello, {{ user.username }}</h1>
-  <a href="{% url 'logout' %}">Logout</a>
-</header>
+  <!-- Top Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4 w-100">
+    <a class="navbar-brand fw-bold" href="#">Dashboard</a>
+    <div class="collapse navbar-collapse justify-content-end" id="navbarContent">
+      <!-- Search -->
+      <form class="d-flex me-3" role="search">
+        <input class="form-control me-2" type="search" placeholder="Search..." />
+        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
+      </form>
 
-<div class="container">
+      <!-- From-To Date Picker -->
+      <div class="d-flex align-items-center me-3">
+        <label class="me-2">From:</label>
+        <input type="date" id="fromDate" class="form-control me-2" style="width: auto;" />
+        <label class="me-2">To:</label>
+        <input type="date" id="toDate" class="form-control me-2" style="width: auto;" />
+        <button id="filterBtn" class="btn btn-primary">Filter</button>
+      </div>
 
-  <!-- Section: Quick Stats -->
-  <div class="section">
-    <h2>Quick Stats</h2>
-    <div class="card-grid">
-      <div class="card">
-        <h3>12</h3>
-        <p>Exams Taken</p>
+      <!-- User Dropdown -->
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+          <i class="bi bi-person-circle"></i> Admin
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#">Profile</a></li>
+          <li><a class="dropdown-item" href="#">Settings</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form action="{% url 'logout' %}" method="POST" class="dropdown-item m-0 p-0">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-link text-danger w-100 text-start" style="text-decoration: none;">Logout</button>
+            </form>
+          </li>
+        </ul>
       </div>
-      <div class="card">
-        <h3>87%</h3>
-        <p>Avg. Score</p>
+    </div>
+  </nav>
+
+  <!-- Wrapper for Sidebar + Main -->
+  <div id="content-wrapper">
+    <!-- Sidebar -->
+    <nav id="sidebar" class="d-flex flex-column p-3">
+      <button id="sidebarToggle" class="btn btn-outline-light mb-3">≡</button>
+      <ul class="nav nav-pills flex-column">
+        <li class="nav-item"><a class="nav-link" href="#">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Analytics</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Reports</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Settings</a></li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div id="main">
+      <h2 class="mb-4">Analytics Dashboard</h2>
+
+      <!-- Graph Selector -->
+      <div class="mb-4">
+        <label for="chartSelector" class="form-label fw-bold">Select Graph:</label>
+        <select id="chartSelector" class="form-select w-auto">
+          <option value="all">All Graphs</option>
+          <option value="barGraph">Bar Graph</option>
+          <option value="lineGraph">Line Graph</option>
+          <option value="pieChart">Pie Chart</option>
+          <option value="doughnutChart">Doughnut Chart</option>
+          <option value="radarChart">Radar Chart</option>
+          <option value="polarChart">Polar Area Chart</option>
+          <option value="bubbleChart">Bubble Chart</option>
+          <option value="scatterChart">Scatter Plot</option>
+        </select>
       </div>
-      <div class="card">
-        <h3>#5</h3>
-        <p>Class Rank</p>
-      </div>
-      <div class="card">
-        <h3>92%</h3>
-        <p>Attendance</p>
+
+      <!-- Chart Grid: Two Charts per Row -->
+      <div class="row" id="chartContainer">
+        <div class="col-md-6 mb-4 chart-wrapper" data-chart="barGraph">
+          <div class="chart-card">
+            <h4 class="text-center">Bar Graph</h4>
+            <canvas id="barGraph"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4 chart-wrapper" data-chart="lineGraph">
+          <div class="chart-card">
+            <h4 class="text-center">Line Graph</h4>
+            <canvas id="lineGraph"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4 chart-wrapper" data-chart="pieChart">
+          <div class="chart-card">
+            <h4 class="text-center">Pie Chart</h4>
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4 chart-wrapper" data-chart="doughnutChart">
+          <div class="chart-card">
+            <h4 class="text-center">Doughnut Chart</h4>
+            <canvas id="doughnutChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4 chart-wrapper" data-chart="radarChart">
+          <div class="chart-card">
+            <h4 class="text-center">Radar Chart</h4>
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4 chart-wrapper" data-chart="polarChart">
+          <div class="chart-card">
+            <h4 class="text-center">Polar Area Chart</h4>
+            <canvas id="polarChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4 chart-wrapper" data-chart="bubbleChart">
+          <div class="chart-card">
+            <h4 class="text-center">Bubble Chart</h4>
+            <canvas id="bubbleChart"></canvas>
+          </div>
+        </div>
+        <div class="col-md-6 mb-4 chart-wrapper" data-chart="scatterChart">
+          <div class="chart-card">
+            <h4 class="text-center">Scatter Plot</h4>
+            <canvas id="scatterChart"></canvas>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Section: Upcoming Exams -->
-  <div class="section">
-    <h2>Upcoming Exams</h2>
-    <table>
-      <tr><th>Subject</th><th>Date</th><th>Time</th></tr>
-      <tr><td>Physics</td><td>2025-07-21</td><td>10:00 AM</td></tr>
-      <tr><td>English</td><td>2025-07-23</td><td>12:00 PM</td></tr>
-    </table>
-  </div>
+  <!-- JS Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Section: Recent Results -->
-  <div class="section">
-    <h2>Recent Results</h2>
-    <table>
-      <tr><th>Subject</th><th>Score</th><th>Status</th></tr>
-      <tr><td>Math</td><td>92%</td><td>Passed</td></tr>
-      <tr><td>Chemistry</td><td>76%</td><td>Passed</td></tr>
-      <tr><td>Biology</td><td>65%</td><td>Passed</td></tr>
-    </table>
-  </div>
+  <script>
+    // Sidebar Toggle
+    document.getElementById('sidebarToggle').onclick = () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    };
 
-  <!-- Section: Performance Chart -->
-  <div class="section chart-container">
-    <h2>Score Chart</h2>
-    <canvas id="scoreChart"></canvas>
-  </div>
+    // Filter Button
+    document.getElementById('filterBtn').addEventListener('click', () => {
+      const from = document.getElementById('fromDate').value;
+      const to = document.getElementById('toDate').value;
+      console.log('Filtering from:', from, 'to:', to);
+    });
 
-</div>
-
-<footer>&copy; 2025 Student Online Exam Portal</footer>
-
-<script>
-  const ctx = document.getElementById('scoreChart');
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Math', 'Chemistry', 'Biology'],
-      datasets: [{
-        label: 'Recent Scores',
-        data: [92, 76, 65],
-        backgroundColor: ['#2ecc71', '#e67e22', '#3498db'],
-        borderRadius: 5
-      }]
-    },
-    options: {
-      plugins: {
-        title: {
-          display: true,
-          text: 'Recent Exam Performance'
+    // Graph Selector Display Logic
+    document.getElementById("chartSelector").addEventListener("change", function () {
+      const selected = this.value;
+      document.querySelectorAll(".chart-wrapper").forEach(wrapper => {
+        if (selected === "all" || wrapper.dataset.chart === selected) {
+          wrapper.style.display = "block";
+        } else {
+          wrapper.style.display = "none";
         }
+      });
+    });
+
+    // Chart Initialization
+    new Chart(barGraph, {
+      type: 'bar',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [{ label: 'Users', backgroundColor: '#17a2b8', data: [120, 90, 150, 200, 170] }]
+      }
+    });
+
+    new Chart(lineGraph, {
+      type: 'line',
+      data: {
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        datasets: [{ label: 'Revenue', borderColor: '#28a745', fill: false, data: [1000, 1400, 1200, 1800] }]
+      }
+    });
+
+    new Chart(pieChart, {
+      type: 'pie',
+      data: {
+        labels: ['Desktop', 'Mobile', 'Tablet'],
+        datasets: [{ data: [55, 30, 15], backgroundColor: ['#007bff', '#ffc107', '#dc3545'] }]
+      }
+    });
+
+    new Chart(doughnutChart, {
+      type: 'doughnut',
+      data: {
+        labels: ['Segment A', 'Segment B', 'Segment C'],
+        datasets: [{ data: [40, 35, 25], backgroundColor: ['#6610f2', '#20c997', '#fd7e14'] }]
+      }
+    });
+
+    new Chart(radarChart, {
+      type: 'radar',
+      data: {
+        labels: ['Speed', 'Reliability', 'Comfort', 'Safety', 'Efficiency'],
+        datasets: [{
+          label: 'Car A',
+          data: [65, 59, 90, 81, 56],
+          backgroundColor: 'rgba(23,162,184,0.2)',
+          borderColor: '#17a2b8'
+        }]
+      }
+    });
+
+    new Chart(polarChart, {
+      type: 'polarArea',
+      data: {
+        labels: ['Red', 'Green', 'Yellow', 'Grey', 'Blue'],
+        datasets: [{
+          data: [11, 16, 7, 3, 14],
+          backgroundColor: ['#dc3545', '#28a745', '#ffc107', '#6c757d', '#007bff']
+        }]
+      }
+    });
+
+    new Chart(bubbleChart, {
+      type: 'bubble',
+      data: {
+        datasets: [{
+          label: 'Bubble Example',
+          data: [{ x: 10, y: 20, r: 10 }, { x: 15, y: 10, r: 15 }, { x: 25, y: 30, r: 8 }],
+          backgroundColor: '#6610f2'
+        }]
+      }
+    });
+
+    new Chart(scatterChart, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Scatter Dataset',
+          data: [{ x: -10, y: 0 }, { x: 0, y: 10 }, { x: 10, y: 5 }, { x: 20, y: 15 }, { x: 30, y: 20 }],
+          backgroundColor: '#20c997'
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true
+      options: {
+        scales: {
+          x: { type: 'linear', position: 'bottom' }
         }
       }
-    }
-  });
-</script>
-
+    });
+  </script>
 </body>
 </html>
-
-    
-

@@ -3,15 +3,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect 
 import random
-import ssl
-import certifi 
-
-# Monkey patch: Force SSL context to use certifi
-ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
-
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect
 
 @login_required
 def dashboard_view(request):
@@ -38,7 +32,7 @@ def register_view(request):
         confirm = request.POST["confirm"]
 
         if password != confirm:
-            return render(request, "auth/register.html", {"error": "Passwords do not match"})
+            return render(request, "exam/register.html", {"error": "Passwords do not match"})
 
         user = User.objects.create_user(username=username, email=email, password=password)
         user.is_active = False
@@ -69,7 +63,7 @@ def otp_view(request):
             user.is_active = True
             user.save()
             login(request, user)
-            return redirect("dashboard.html")
+            return redirect("dashboard")
 
     return render(request, "exam/otp.html")
 
