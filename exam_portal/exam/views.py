@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout as auth_logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
@@ -90,8 +90,8 @@ def resend_otp(request):
 def auth_success(request):
     return render(request, "exam/auth_success.html")
 
-
+@csrf_protect
 def logout_view(request):
     if request.method == "POST":
-        auth_logout(request)
+        logout(request)
         return redirect("login")
