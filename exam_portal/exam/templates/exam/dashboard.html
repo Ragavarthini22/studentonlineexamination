@@ -1,73 +1,99 @@
+<!-- templates/dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Student Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      background: #f4f6f8;
       color: #333;
     }
 
     header {
       background: #34495e;
-      color: #fff;
+      color: white;
       padding: 20px 40px;
-      text-align: center;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header a {
+      color: #f39c12;
+      text-decoration: none;
+      font-weight: bold;
     }
 
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 30px auto;
-      padding: 20px;
+      padding: 0 20px;
     }
 
-    .stats {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section h2 {
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
     }
 
     .card {
-      background: #fff;
+      background: white;
       padding: 20px;
       border-radius: 12px;
-      flex: 1 1 250px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
       text-align: center;
     }
 
-    .card h2 {
-      font-size: 28px;
-      margin: 0 0 10px;
+    .card h3 {
+      margin: 10px 0;
+      color: #16a085;
     }
 
-    .charts {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 30px;
-      margin-top: 40px;
-    }
-
-    canvas {
+    .chart-container {
       background: white;
-      padding: 10px;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    table {
+      width: 100%;
+      background: white;
       border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 10px;
+      border-collapse: collapse;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background: #ecf0f1;
     }
 
     footer {
-      text-align: center;
+      margin-top: 50px;
       padding: 20px;
-      color: #777;
+      text-align: center;
+      color: #888;
       font-size: 14px;
     }
   </style>
@@ -75,119 +101,84 @@
 <body>
 
 <header>
-  <h1>Student Online Examination Dashboard</h1>
+  <h1>Hello, {{ user.username }}</h1>
+  <a href="{% url 'logout' %}">Logout</a>
 </header>
 
 <div class="container">
 
-  <!-- Stat Cards -->
-  <div class="stats">
-    <div class="card">
-      <h2>120</h2>
-      <p>Total Students</p>
-    </div>
-    <div class="card">
-      <h2>15</h2>
-      <p>Exams Conducted</p>
-    </div>
-    <div class="card">
-      <h2>85%</h2>
-      <p>Overall Pass Rate</p>
+  <!-- Section: Quick Stats -->
+  <div class="section">
+    <h2>Quick Stats</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>12</h3>
+        <p>Exams Taken</p>
+      </div>
+      <div class="card">
+        <h3>87%</h3>
+        <p>Avg. Score</p>
+      </div>
+      <div class="card">
+        <h3>#5</h3>
+        <p>Class Rank</p>
+      </div>
+      <div class="card">
+        <h3>92%</h3>
+        <p>Attendance</p>
+      </div>
     </div>
   </div>
 
-  <!-- Chart Section -->
-  <div class="charts">
-    <canvas id="barChart"></canvas>
-    <canvas id="pieChart"></canvas>
-    <canvas id="lineChart"></canvas>
+  <!-- Section: Upcoming Exams -->
+  <div class="section">
+    <h2>Upcoming Exams</h2>
+    <table>
+      <tr><th>Subject</th><th>Date</th><th>Time</th></tr>
+      <tr><td>Physics</td><td>2025-07-21</td><td>10:00 AM</td></tr>
+      <tr><td>English</td><td>2025-07-23</td><td>12:00 PM</td></tr>
+    </table>
+  </div>
+
+  <!-- Section: Recent Results -->
+  <div class="section">
+    <h2>Recent Results</h2>
+    <table>
+      <tr><th>Subject</th><th>Score</th><th>Status</th></tr>
+      <tr><td>Math</td><td>92%</td><td>Passed</td></tr>
+      <tr><td>Chemistry</td><td>76%</td><td>Passed</td></tr>
+      <tr><td>Biology</td><td>65%</td><td>Passed</td></tr>
+    </table>
+  </div>
+
+  <!-- Section: Performance Chart -->
+  <div class="section chart-container">
+    <h2>Score Chart</h2>
+    <canvas id="scoreChart"></canvas>
   </div>
 
 </div>
 
-<footer>
-  &copy; 2025 Student Online Examination Portal
-</footer>
+<footer>&copy; 2025 Student Online Exam Portal</footer>
 
 <script>
-  // Dummy data for illustration
-  const examLabels = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
-  const avgScores = [78, 84, 72, 88, 91];
-
-  // Bar Chart
-  new Chart(document.getElementById('barChart'), {
+  const ctx = document.getElementById('scoreChart');
+  new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: examLabels,
+      labels: ['Math', 'Chemistry', 'Biology'],
       datasets: [{
-        label: 'Average Score',
-        data: avgScores,
-        backgroundColor: 'rgba(52, 152, 219, 0.7)',
-        borderColor: '#2980b9',
-        borderWidth: 1,
-        borderRadius: 6
+        label: 'Recent Scores',
+        data: [92, 76, 65],
+        backgroundColor: ['#2ecc71', '#e67e22', '#3498db'],
+        borderRadius: 5
       }]
     },
     options: {
       plugins: {
         title: {
           display: true,
-          text: 'Average Score per Subject'
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-
-  // Pie Chart
-  new Chart(document.getElementById('pieChart'), {
-    type: 'pie',
-    data: {
-      labels: examLabels,
-      datasets: [{
-        data: avgScores,
-        backgroundColor: [
-          '#3498db',
-          '#1abc9c',
-          '#e67e22',
-          '#e74c3c',
-          '#9b59b6'
-        ]
-      }]
-    },
-    options: {
-      plugins: {
-        title: {
-          display: true,
-          text: 'Score Distribution'
-        }
-      }
-    }
-  });
-
-  // Line Chart
-  new Chart(document.getElementById('lineChart'), {
-    type: 'line',
-    data: {
-      labels: examLabels,
-      datasets: [{
-        label: 'Score Trend',
-        data: avgScores,
-        fill: true,
-        backgroundColor: 'rgba(46, 204, 113, 0.2)',
-        borderColor: '#27ae60',
-        tension: 0.4
-      }]
-    },
-    options: {
-      plugins: {
-        title: {
-          display: true,
-          text: 'Exam Performance Trend'
+          text: 'Recent Exam Performance'
         }
       },
       scales: {
@@ -202,6 +193,5 @@
 </body>
 </html>
 
-
-
+    
 
