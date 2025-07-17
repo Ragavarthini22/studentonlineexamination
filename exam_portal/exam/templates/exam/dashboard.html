@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      color: #333;
+    }
+
+    header {
+      background: #34495e;
+      color: #fff;
+      padding: 20px 40px;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      flex: 1 1 250px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    .card h2 {
+      font-size: 28px;
+      margin: 0 0 10px;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    canvas {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #777;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Student Online Examination Dashboard</h1>
+</header>
+
+<div class="container">
+
+  <!-- Stat Cards -->
+  <div class="stats">
+    <div class="card">
+      <h2>120</h2>
+      <p>Total Students</p>
+    </div>
+    <div class="card">
+      <h2>15</h2>
+      <p>Exams Conducted</p>
+    </div>
+    <div class="card">
+      <h2>85%</h2>
+      <p>Overall Pass Rate</p>
+    </div>
+  </div>
+
+  <!-- Chart Section -->
+  <div class="charts">
+    <canvas id="barChart"></canvas>
+    <canvas id="pieChart"></canvas>
+    <canvas id="lineChart"></canvas>
+  </div>
+
+</div>
+
+<footer>
+  &copy; 2025 Student Online Examination Portal
+</footer>
+
+<script>
+  // Dummy data for illustration
+  const examLabels = ['Math', 'Physics', 'Chemistry', 'Biology', 'English'];
+  const avgScores = [78, 84, 72, 88, 91];
+
+  // Bar Chart
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: examLabels,
+      datasets: [{
+        label: 'Average Score',
+        data: avgScores,
+        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+        borderColor: '#2980b9',
+        borderWidth: 1,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Average Score per Subject'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+
+  // Pie Chart
+  new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: {
+      labels: examLabels,
+      datasets: [{
+        data: avgScores,
+        backgroundColor: [
+          '#3498db',
+          '#1abc9c',
+          '#e67e22',
+          '#e74c3c',
+          '#9b59b6'
+        ]
+      }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Score Distribution'
+        }
+      }
+    }
+  });
+
+  // Line Chart
+  new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+      labels: examLabels,
+      datasets: [{
+        label: 'Score Trend',
+        data: avgScores,
+        fill: true,
+        backgroundColor: 'rgba(46, 204, 113, 0.2)',
+        borderColor: '#27ae60',
+        tension: 0.4
+      }]
+    },
+    options: {
+      plugins: {
+        title: {
+          display: true,
+          text: 'Exam Performance Trend'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
+
+
+
+
