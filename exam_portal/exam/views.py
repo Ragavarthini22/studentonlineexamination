@@ -6,6 +6,8 @@ from django.conf import settings
 import random
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
+from django.contrib import messages
+from django.contrib.auth import get_user_model
 
 @login_required
 def dashboard_view(request):
@@ -89,3 +91,134 @@ def logout_view(request):
     if request.method == "POST":
         logout(request)
         return redirect("login")
+    
+def home_view(request):
+    return render(request, 'exam/home.html')
+
+User = get_user_model()  # In case you're using CustomUser
+
+def authenticate_user_type(request, expected_type):
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    user = authenticate(request, username=username, password=password)
+    if user and hasattr(user, 'user_type') and user.user_type == expected_type:
+        login(request, user)
+        return user
+    else:
+        messages.error(request, "Invalid credentials or role.")
+        return None
+
+def student_login_view(request):
+    if request.method == "POST":
+        user = authenticate_user_type(request, 'student')
+        if user:
+            return redirect("student_dashboard")
+    return redirect("homepage")
+
+def teacher_login_view(request):
+    if request.method == "POST":
+        user = authenticate_user_type(request, 'teacher')
+        if user:
+            return redirect("teacher_dashboard")
+    return redirect("homepage")
+
+def admin_login_view(request):
+    if request.method == "POST":
+        user = authenticate_user_type(request, 'admin')
+        if user:
+            return redirect("admin_dashboard")
+    return redirect("homepage")
+
+def student_register_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        confirm = request.POST.get("confirm")
+        user_type = request.POST.get("user_type")  # Expected values: 'student', 'teacher', 'admin'
+
+        if password != confirm:
+            messages.error(request, "Passwords do not match.")
+            return redirect("homepage")
+
+        if not user_type or user_type not in ["student", "teacher", "admin"]:
+            messages.error(request, "Please select a valid user type.")
+            return redirect("homepage")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return redirect("homepage")
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+            return redirect("homepage")
+
+        # Create user but set inactive until OTP verified
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.is_active = False
+        user.user_type = user_type  # Custom field on your CustomUser model
+        user.save()
+
+        # Generate and send OTP
+        otp = generate_otp()
+        request.session["otp"] = otp
+        request.session["user_to_verify"] = username
+
+        send_mail(
+            "Your OTP Verification Code",
+            f"Here is your OTP: {otp}",
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+        )
+
+        messages.success(request, "OTP sent to your email.")
+        return redirect("otp")
+
+    return redirect("homepage")
+
+def teacher_register_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        confirm = request.POST.get("confirm")
+        user_type = request.POST.get("user_type")  # Expected values: 'student', 'teacher', 'admin'
+
+        if password != confirm:
+            messages.error(request, "Passwords do not match.")
+            return redirect("homepage")
+
+        if not user_type or user_type not in ["student", "teacher", "admin"]:
+            messages.error(request, "Please select a valid user type.")
+            return redirect("homepage")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return redirect("homepage")
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
+            return redirect("homepage")
+
+        # Create user but set inactive until OTP verified
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.is_active = False
+        user.user_type = user_type  # Custom field on your CustomUser model
+        user.save()
+
+        # Generate and send OTP
+        otp = generate_otp()
+        request.session["otp"] = otp
+        request.session["user_to_verify"] = username
+
+        send_mail(
+            "Your OTP Verification Code",
+            f"Here is your OTP: {otp}",
+            settings.DEFAULT_FROM_EMAIL,
+            [email],
+        )
+
+        messages.success(request, "OTP sent to your email.")
+        return redirect("otp")
+
+    return redirect("homepage")

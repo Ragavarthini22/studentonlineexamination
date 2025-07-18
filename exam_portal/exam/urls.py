@@ -18,13 +18,27 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('register/', views.register_view, name='register'),
-    path('otp/', views.otp_view, name='otp'),
-    path('resend-otp/', views.resend_otp, name='resend_otp'),
-    path('login/', views.login_view, name='login'),  # ✅ Ensure this is here
-    path('dashboard/', views.dashboard_view, name='dashboard'),
-    path('success/', views.auth_success, name='auth_success'),
-    path('logout/', views.logout_view, name='logout'),
-]
+   # path('register/', views.register_view, name='register'),
+   #path('otp/', views.otp_view, name='otp'),
+   # path('resend-otp/', views.resend_otp, name='resend_otp'),
+   #path('login/', views.login_view, name='login'),  # ✅ Ensure this is here
+    #path('dashboard/', views.dashboard_view, name='dashboard'),
+    #path('success/', views.auth_success, name='auth_success'),
+    #path('logout/', views.logout_view, name='logout'),
+    path('home/',views.home_view, name='home'),
+   
 
+    # Role-Based Login Handlers
+    path('login/student/', views.student_login_view, name='student_login'),
+    path('login/teacher/', views.teacher_login_view, name='teacher_login'),
+    path('login/admin/', views.admin_login_view, name='admin_login'),
+    path('register/student/', views.student_register_view, name='student_login'),
+    path('register/teacher/', views.teacher_register_view, name='teacher_login'),
+    path('register/admin/', views.admin_register_view, name='admin_login'),
+
+    # Role Dashboards
+    path('dashboard/student/', views.student_login_view, name='student_dashboard'),
+    path('dashboard/teacher/', views.teacher_login_view, name='teacher_dashboard'),
+    path('dashboard/admin/', views.admin_login_view, name='admin_dashboard'),
+]
 
