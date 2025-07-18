@@ -18,12 +18,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.login_view, name="login"),
-    path("register/", views.register_view, name="register"),
-    path("otp/", views.otp_view, name="otp"),
-    path("resend-otp/", views.resend_otp, name="resend_otp"),
-    path("success/", views.auth_success, name="auth_success"),
-    path("logout/", views.logout_view, name="logout"),
-    path("dashboard/", views.dashboard_view, name="dashboard"),
+    path('register/', views.register_view, name='register'),
+    path('otp/', views.otp_view, name='otp'),
+    path('resend-otp/', views.resend_otp, name='resend_otp'),
+    path('login/', views.login_view, name='login'),  # ✅ Ensure this is here
+    path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('success/', views.auth_success, name='auth_success'),
+    path('logout/', views.logout_view, name='logout'),
 ]
+
 
